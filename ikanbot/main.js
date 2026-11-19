@@ -492,7 +492,8 @@ function catalogPage(page, category) {
   if (!validCategory(cat)) throw new Error("爱看机器人内容分类无效");
   if (cat === "") cat = CATEGORIES[0].id;
 
-  var path = current > 1 ? "/hot/index-" + cat + "-p-" + current + ".html" : "/hot/index-" + cat + ".html";
+  var catEnc = encodeURIComponent(cat);
+  var path = current > 1 ? "/hot/index-" + catEnc + "-p-" + current + ".html" : "/hot/index-" + catEnc + ".html";
   var result = getPage(path);
   var items = parseCards(result.root, cat);
   if (items.length === 0) return { items: [], hasMore: false };
