@@ -1,6 +1,6 @@
-# 黑果夜剧插件商店
+# 黑果扩展库
 
-黑果夜剧（HeiGuoYeJu）的官方插件商店索引。App 内「插件」页读取本仓库的 `index.json`，列出可安装插件，点「安装」即下载校验后装进本地，可随时卸载。
+黑果夜剧（HeiGuoYeJu）的官方扩展库索引。App 内「插件」页读取本仓库的 `index.json`，列出可安装插件，点「安装」即下载校验后装进本地，可随时卸载。
 
 ## 目录结构
 
@@ -14,5 +14,5 @@
 2. 在 `index.json` 的 `plugins` 数组里加一条记录，`manifest` 填相对路径 `<插件id>/manifest.json`
 3. 提交即可，App 内刷新商店即见。
 
-`index.json` 通过 jsDelivr 提供 CDN 加速：
-`https://cdn.jsdelivr.net/gh/hhhaieee/idj-plugins@main/index.json`
+`index.json` 通过 raw 源站直接提供（即时生效、无 CDN 缓存）：
+`https://raw.githubusercontent.com/hhhaieee/idj-plugins/main/index.json`

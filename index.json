@@ -1,6 +1,6 @@
 {
-  "name": "黑果夜剧插件商店",
-  "description": "黑果夜剧（HeiGuoYeJu）官方插件商店，App 内直接下载安装。",
+  "name": "黑果扩展库",
+  "description": "黑果夜剧（HeiGuoYeJu）官方扩展库，App 内直接下载安装。",
   "plugins": [
     {
       "id": "com.idj.ikanbot",
