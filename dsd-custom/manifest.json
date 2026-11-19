@@ -1,0 +1,46 @@
+{
+ "schema": 1,
+ "id": "com.idj.dsd-custom",
+ "name": "帝果",
+ "version": "1.0.0",
+ "author": {
+  "name": "黑果夜剧（适配 ericto888/guoapp-mod-dsd-custom）"
+ },
+ "description": "帝果短剧站源，支持主备域名自动切换、分类、搜索、详情与播放解析。基于 ericto888 开源模块适配。",
+ "type": "video",
+ "adult": true,
+ "language": [
+  "zh"
+ ],
+ "minAppVersion": "1.5",
+ "entry": "main.js",
+ "permissions": {
+  "http": [
+   "www.dsd901.lol",
+   "dsd901.lol",
+   "dsd901.com"
+  ],
+  "media": [
+   "*.dsd901.lol",
+   "dsd901.lol",
+   "*.dsd901.com",
+   "dsd901.com"
+  ],
+  "cloudflare": false,
+  "storage": true,
+  "login": false,
+  "allowAnyMedia": true
+ },
+ "capabilities": [
+  "home",
+  "category",
+  "search",
+  "detail",
+  "play"
+ ],
+ "integrity": {
+  "files": {
+   "main.js": "sha256-+bl8KmHOv3wZOdm2l4CZUxN/UDF2tgMA28IfYl3djnE="
+  }
+ }
+}
