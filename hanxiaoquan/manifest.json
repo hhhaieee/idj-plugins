@@ -1,0 +1,43 @@
+{
+ "schema": 1,
+ "id": "com.idj.hanxiaoquan",
+ "name": "韩小圈",
+ "version": "1.0.0",
+ "author": {
+  "name": "黑果夜剧（适配 guoapp-modules/hanxiaoquan）"
+ },
+ "description": "韩小圈：韩剧 · 韩国电影 · 韩国综艺 · 韩国动漫。分类浏览、搜索、详情与播放解析。基于 guoapp 开源模块适配。",
+ "type": "video",
+ "adult": false,
+ "language": [
+  "zh"
+ ],
+ "minAppVersion": "1.5",
+ "entry": "main.js",
+ "permissions": {
+  "http": [
+   "www.jennyhow.com",
+   "jennyhow.com"
+  ],
+  "media": [
+   "*.jennyhow.com",
+   "jennyhow.com"
+  ],
+  "cloudflare": false,
+  "storage": true,
+  "login": false,
+  "allowAnyMedia": true
+ },
+ "capabilities": [
+  "home",
+  "category",
+  "search",
+  "detail",
+  "play"
+ ],
+ "integrity": {
+  "files": {
+   "main.js": "sha256-iHuv/sswij9c1TmcEtLy1NAcYx/stu1xcS7qo+u+G9Q="
+  }
+ }
+}

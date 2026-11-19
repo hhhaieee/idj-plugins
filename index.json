@@ -19,6 +19,15 @@
       "adult": true,
       "version": "1.0.0",
       "description": "帝果短剧站源，主备域名自动切换、分类、搜索、详情与播放解析。"
+    },
+    {
+      "id": "com.idj.hanxiaoquan",
+      "name": "韩小圈",
+      "manifest": "hanxiaoquan/manifest.json",
+      "type": "video",
+      "adult": false,
+      "version": "1.0.0",
+      "description": "韩剧 · 韩国电影 · 韩国综艺 · 韩国动漫。分类浏览、搜索、详情与播放解析。"
     }
   ]
 }
