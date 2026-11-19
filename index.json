@@ -8,7 +8,7 @@
       "manifest": "ikanbot/manifest.json",
       "type": "video",
       "adult": false,
-      "version": "1.0.6",
+      "version": "1.0.7",
       "description": "全网聚合搜索式影视源，多线路 m3u8 可切换。"
     }
   ]

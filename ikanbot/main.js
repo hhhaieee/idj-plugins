@@ -639,11 +639,14 @@ function resolveMedia(task) {
 
   // ---- idj1 协议适配 ----
   function toItems(list) {
+    var coverRef = { Referer: 'https://movie.douban.com/' };
     return (list || []).map(function (d) {
+      var cover = d.cover || '';
       return {
         id: d.id || d.sourceId || '',
         title: d.title || d.name || '',
-        cover: d.cover || '',
+        cover: cover,
+        coverHeaders: cover ? coverRef : null,
         remarks: d.categoryName || d.channelName || ''
       };
     });
@@ -678,6 +681,7 @@ function resolveMedia(task) {
     return {
       title: drama.title || '',
       cover: drama.cover || '',
+      coverHeaders: drama.cover ? { Referer: 'https://movie.douban.com/' } : null,
       desc: drama.desc || '',
       tags: tagList,
       lines: [{ name: '默认', episodes: episodes }]
