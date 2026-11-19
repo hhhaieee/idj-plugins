@@ -325,6 +325,26 @@ function lineQuality(flag) {
   return value >= 480 && value <= 2160 ? value : 0;
 }
 
+// 线路 flag（资源站拼音缩写）→ 中文来源名
+var LINE_NAMES = {
+  "dbm3u8": "豆瓣", "xlm3u8": "迅雷", "gsm3u8": "光速", "jsm3u8": "极速",
+  "bfzym3u8": "暴风资源", "1080zyk": "1080资源", "sdm3u8": "速度", "lzm3u8": "量子",
+  "kcm3u8": "快车", "wjm3u8": "无极", "hhm3u8": "红狐", "dyttm3u8": "电影天堂",
+  "ffm3u8": "非凡", "snm3u8": "索尼", "hym3u8": "华语", "ikm3u8": "爱看",
+  "jinyingm3u8": "金鹰", "rym3u8": "日月", "zuidam3u8": "最大资源", "tym3u8": "天翼",
+  "yhm3u8": "樱花", "okm3u8": "OK资源", "yym3u8": "云影", "nnm3u8": "牛牛",
+  "ukm3u8": "优酷", "subm3u8": "速播", "iqym3u8": "爱奇艺", "360zy": "360资源",
+  "xiguam3u8": "西瓜"
+};
+
+function lineName(flag, index) {
+  var f = String(flag || "").trim().toLowerCase();
+  if (LINE_NAMES[f]) return LINE_NAMES[f];
+  var q = lineQuality(flag);
+  if (q) return "线路" + (index + 1) + "·" + q;
+  return "线路" + (index + 1);
+}
+
 // 从线路接口 JSON 整理出按分集数降序的线路列表
 function parseLines(payload) {
   var lines = [];
@@ -592,6 +612,7 @@ function resolveMedia(task) {
         url: episode.url,
         referer: referer,
         quality: lineQuality(lines[i].flag),
+        flag: lines[i].flag,
       });
     }
   }
@@ -613,7 +634,7 @@ function resolveMedia(task) {
 
 
     return { categories: categories, validCategory: validCategory, catalogPage: catalogPage,
-             search: search, detail: detail, resolveMedia: resolveMedia };
+             search: search, detail: detail, resolveMedia: resolveMedia, lineName: lineName };
   })(compatHost);
 
   // ---- idj1 协议适配 ----
@@ -680,9 +701,9 @@ function resolveMedia(task) {
     var chapter = { id: episodeId, referer: 'https://www1.ikanbot.com/' };
     var media = IK.resolveMedia({ dramaId: dramaId, chapter: chapter });
     var variants = (media && media.variants) || [media];
-    var streams = (variants || []).map(function (v) {
+    var streams = (variants || []).map(function (v, idx) {
       var url = String((v && v.url) || '');
-      var name = (v && v.quality) || '';
+      var name = IK.lineName(v && v.flag, idx);
       return { url: url, name: name, format: /\.m3u8/.test(url) ? 'hls' : 'mp4',
                headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36', 'Referer': (v && v.referer) || 'https://www1.ikanbot.com/' } };
     }).filter(function (s) { return /^https:\/\//.test(s.url); });

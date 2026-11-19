@@ -2,7 +2,7 @@
  "schema": 1,
  "id": "com.idj.ikanbot",
  "name": "爱看机器人",
- "version": "1.0.5",
+ "version": "1.0.6",
  "author": {
   "name": "黑果夜剧（适配 guoapp-modules/ikanbot）"
  },
@@ -22,7 +22,9 @@
   ],
   "media": [
    "*.ikanbot.com",
-   "ikanbot.com"
+   "ikanbot.com",
+   "*.doubanio.com",
+   "doubanio.com"
   ],
   "cloudflare": false,
   "storage": true,
@@ -38,7 +40,7 @@
  ],
  "integrity": {
   "files": {
-   "main.js": "sha256-87O0ha4sCv+XudR1jwDS9SnyGUNGq+vP07/RwtMZHKE="
+   "main.js": "sha256-Injj0Mq0UVMgqLhjQQrjwJ2CpP3nMYH9hLSfygNrQQk="
   }
  }
 }
