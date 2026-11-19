@@ -19,6 +19,15 @@
       "adult": true,
       "version": "1.0.0",
       "description": "帝果短剧站源，主备域名自动切换、分类、搜索、详情与播放解析。"
+    },
+    {
+      "id": "com.idj.a123",
+      "name": "A123",
+      "manifest": "a123/manifest.json",
+      "type": "video",
+      "adult": false,
+      "version": "1.0.0",
+      "description": "A123 影视：电影 · 连续剧 · 综艺 · 动漫，w4 聚合站源，多线路 m3u8 直链切换。"
     }
   ]
 }
