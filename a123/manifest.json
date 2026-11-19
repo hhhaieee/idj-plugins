@@ -1,0 +1,43 @@
+{
+ "schema": 1,
+ "id": "com.idj.a123",
+ "name": "A123",
+ "version": "1.0.0",
+ "author": {
+  "name": "黑果夜剧（移植 quanju-tv/provider_a123）"
+ },
+ "description": "A123 影视：电影 · 连续剧 · 综艺 · 动漫。w4 聚合站源，多线路 m3u8 直链切换，分类浏览、搜索、详情与播放解析。",
+ "type": "video",
+ "adult": false,
+ "language": [
+  "zh"
+ ],
+ "minAppVersion": "1.5",
+ "entry": "main.js",
+ "permissions": {
+  "http": [
+   "a123tv.com",
+   "www.a123tv.com"
+  ],
+  "media": [
+   "*.a123tv.com",
+   "a123tv.com"
+  ],
+  "cloudflare": false,
+  "storage": false,
+  "login": false,
+  "allowAnyMedia": true
+ },
+ "capabilities": [
+  "home",
+  "category",
+  "search",
+  "detail",
+  "play"
+ ],
+ "integrity": {
+  "files": {
+   "main.js": "sha256-jsZ1X0tQlKfUUtkhKxJOVPzjBhKoiZVymjiQ9UwoYic="
+  }
+ }
+}
