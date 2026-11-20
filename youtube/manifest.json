@@ -1,0 +1,88 @@
+{
+ "schema": 1,
+ "id": "com.idj.youtube",
+ "name": "油管",
+ "version": "1.0.3",
+ "author": {
+  "name": "i短剧",
+  "contact": ""
+ },
+ "description": "通用 YouTube 频道插件：填频道列出全部视频并播放。列表走官方接口，播放优先官方明文直链、失败回退 Invidious/Piped 实例。测试频道 @TWStoryTV。",
+ "type": "video",
+ "adult": false,
+ "language": [
+  "zh",
+  "en"
+ ],
+ "minAppVersion": "1.5",
+ "entry": "main.js",
+ "permissions": {
+  "http": [
+   "youtube.com",
+   "www.youtube.com",
+   "m.youtube.com",
+   "i.ytimg.com",
+   "yt.chocolatemoo53.com",
+   "invidious.tiekoetter.com",
+   "inv.nadeko.net",
+   "invidious.nerdvpn.de",
+   "yewtu.be",
+   "inv.tux.pizza",
+   "yt.artemislena.eu",
+   "invidious.privacydev.net",
+   "invidious.drgns.space",
+   "pipedapi.kavin.rocks",
+   "api.piped.yt",
+   "pipedapi.adminforge.de",
+   "pipedapi.tokhmi.xyz",
+   "piped-api.garudalinux.org",
+   "pipedapi.leptons.xyz"
+  ],
+  "media": [
+   "i.ytimg.com",
+   "*.ytimg.com",
+   "*.googlevideo.com",
+   "*.googleapis.com"
+  ],
+  "cloudflare": true,
+  "storage": true,
+  "login": false
+ },
+ "capabilities": [
+  "home",
+  "category",
+  "search",
+  "detail",
+  "play"
+ ],
+ "settings": [
+  {
+   "key": "channels",
+   "name": "频道列表（@频道名 / UC... / 频道链接，多个用逗号或换行分隔）",
+   "type": "text",
+   "default": ""
+  },
+  {
+   "key": "flavor",
+   "name": "播放实例类型",
+   "type": "select",
+   "default": "auto",
+   "options": [
+    "auto",
+    "invidious",
+    "piped"
+   ]
+  },
+  {
+   "key": "api",
+   "name": "自定义播放实例（可选，留空用内置；填 https:// 开头的实例地址）",
+   "type": "text",
+   "default": "auto"
+  }
+ ],
+ "integrity": {
+  "files": {
+   "main.js": "sha256-CyJLAHR9ddU6qiYqIsz0GpvWV0KHoB56pnfBx82vu4E="
+  }
+ }
+}
