@@ -2,12 +2,12 @@
  "schema": 1,
  "id": "com.idj.youtube",
  "name": "油管",
- "version": "1.0.3",
+ "version": "1.0.4",
  "author": {
   "name": "i短剧",
   "contact": ""
  },
- "description": "通用 YouTube 频道插件：填频道列出全部视频并播放。列表走官方接口，播放优先官方明文直链、失败回退 Invidious/Piped 实例。测试频道 @TWStoryTV。",
+ "description": "通用 YouTube 频道插件：填频道列出全部视频并播放。频道解析三级兜底(browse/HTML/搜索)，播放优先官方明文直链、失败回退 Invidious/Piped 实例。测试频道 @TWStoryTV。",
  "type": "video",
  "adult": false,
  "language": [
@@ -82,7 +82,7 @@
  ],
  "integrity": {
   "files": {
-   "main.js": "sha256-CyJLAHR9ddU6qiYqIsz0GpvWV0KHoB56pnfBx82vu4E="
+   "main.js": "sha256-tcfo46+WP4XzsvI+7wjgzC1cCkbL5AecDq2CRVfhrig="
   }
  }
 }

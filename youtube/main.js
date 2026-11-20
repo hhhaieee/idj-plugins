@@ -77,22 +77,66 @@ function channelList() {
   return out;
 }
 
-// @handle / 用户名 → UC id（拿频道页里的 externalId），顺带喂给动态 client
+// @handle / 用户名 → UC id。三条通道各自独立 try，互为兜底：
+//  ① youtubei browse 直接把 handle 当 browseId（返回 JSON，POST 不受频道页 302 跳转拦截影响，最稳）
+//  ② 频道页 HTML 正则（补 browseId / vanityChannelUrl / 转义引号等多种字段）
+//  ③ 站内搜频道名，从 channelRenderer.channelId 取
 async function resolveBrowseId(ch) {
   if (ch.kind === 'id') return ch.value;
-  const url = INNERTUBE + '/' + ch.value;
+
+  // ① browse 接口：handle 可直接作 browseId；失败不影响后续通道
   try {
-    const res = await host.http.request({ url, timeout: 15000 });
+    const r = await browse({ browseId: ch.value });
+    const id = pick(r,
+      'header.channelHeaderRenderer.channelId',
+      'header.channelHeaderRenderer.externalId',
+      'metadata.channelMetadataRenderer.externalId',
+      'contents.twoColumnBrowseResultsRenderer.tabs.0.tabRenderer.content.sectionListRenderer.contents.0.itemSectionRenderer.contents.0.channelRenderer.channelId');
+    if (id && /^UC[\w\-]{22}$/.test(id)) { host.log('browse 解析频道 ID 成功', ch.value, id); return id; }
+  } catch (e) { host.log('browse 解析频道 ID 失败', ch.value, (e && e.message) || e); }
+
+  // ② 频道页 HTML 正则：多字段 + 转义引号 + /channel/UC 形式
+  try {
+    const res = await host.http.request({ url: INNERTUBE + '/' + ch.value, timeout: 15000 });
     const body = String(res.body || '');
     parseClientFromHtml(body);
-    let m = body.match(/"externalId":"(UC[\w\-]{22})"/);
-    if (!m) m = body.match(/"channelId":"(UC[\w\-]{22})"/);
-    if (!m) m = body.match(/\\?"externalId\\?":\\?"(UC[\w\-]{22})\\?"/);
-    if (m) return m[1];
-    const r = await browse({ browseId: ch.value });
-    const id = pick(r, 'header.channelHeaderRenderer.channelId', 'metadata.channelMetadataRenderer.externalId');
-    if (id) return id;
-  } catch (e) { host.log('resolveBrowseId 失败', ch.value, (e && e.message) || e); }
+    const pats = [
+      /"externalId":"(UC[\w\-]{22})"/,
+      /"channelId":"(UC[\w\-]{22})"/,
+      /"browseId":"(UC[\w\-]{22})"/,
+      /channel\/(UC[\w\-]{22})/,
+      /\\?"externalId\\?":\\?"(UC[\w\-]{22})\\?"/,
+      /\\?"channelId\\?":\\?"(UC[\w\-]{22})\\?"/,
+      /\\?"browseId\\?":\\?"(UC[\w\-]{22})\\?"/,
+    ];
+    for (const p of pats) {
+      const m = body.match(p);
+      if (m) { host.log('HTML 解析频道 ID 成功', ch.value, m[1]); return m[1]; }
+    }
+  } catch (e) { host.log('频道页 HTML 解析失败', ch.value, (e && e.message) || e); }
+
+  // ③ 搜索兜底：搜频道名，递归找 channelRenderer.channelId
+  try {
+    const c = await ensureClient();
+    const q = ch.value.replace(/^@/, '');
+    const body = JSON.stringify({
+      context: { client: { clientName: 'WEB', clientVersion: c.version, hl: 'zh-CN', gl: 'US' } },
+      searchQuery: q
+    });
+    const res = await host.http.post(INNERTUBE + '/youtubei/v1/search?key=' + c.key, body,
+      { headers: { 'Content-Type': 'application/json', 'User-Agent': 'Mozilla/5.0' }, timeout: 20000 });
+    const r = JSON.parse(res.body || '{}');
+    let id = null;
+    const walk = (x, d) => {
+      if (id || !x || typeof x !== 'object' || d > 30) return;
+      const v = x.channelRenderer || x.gridChannelRenderer;
+      if (v && /^UC[\w\-]{22}$/.test(v.channelId || '')) { id = v.channelId; return; }
+      for (const k in x) walk(x[k], d + 1);
+    };
+    walk(r, 0);
+    if (id) { host.log('搜索解析频道 ID 成功', ch.value, id); return id; }
+  } catch (e) { host.log('搜索解析频道 ID 失败', ch.value, (e && e.message) || e); }
+
   return null;
 }
 
