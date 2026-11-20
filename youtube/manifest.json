@@ -2,12 +2,12 @@
  "schema": 1,
  "id": "com.idj.youtube",
  "name": "油管",
- "version": "1.0.8",
+ "version": "1.0.9",
  "author": {
   "name": "i短剧",
   "contact": ""
  },
- "description": "通用 YouTube 频道插件：填频道列出全部视频并播放。频道解析三级兜底；播放按 yt-dlp 当前配置走 WEB_SAFARI(Safari UA 动态版本取 HLS)/WEB_EMBEDDED/MWEB/TV 免 Token 身份，失败回退 Invidious/Piped 实例。测试频道 @TWStoryTV。",
+ "description": "通用 YouTube 频道插件：填频道列出全部视频并播放。频道解析三级兜底；播放按 yt-dlp 当前配置走 WEB_SAFARI(Safari UA 动态版本取 HLS)/WEB_EMBEDDED/MWEB/TV 免 Token 身份，失败回退 Invidious/Piped 实例。可在插件详情页「打开验证页」登录 Google 账号以提升播放成功率（免费号不保证，Premium 更稳）。测试频道 @TWStoryTV。",
  "type": "video",
  "adult": false,
  "language": [
@@ -18,6 +18,9 @@
  "entry": "main.js",
  "permissions": {
   "http": [
+   "www.youtube.com",
+   "accounts.google.com",
+   "*.google.com",
    "api.piped.private.coffee",
    "api.piped.yt",
    "i.ytimg.com",
@@ -38,7 +41,6 @@
    "pipedapi.orangenet.cc",
    "pipedapi.reallyaweso.me",
    "pipedapi.syncpundit.io",
-   "www.youtube.com",
    "youtube.com",
    "yt.chocolatemoo53.com"
   ],
@@ -50,7 +52,7 @@
   ],
   "cloudflare": true,
   "storage": true,
-  "login": false
+  "login": true
  },
  "capabilities": [
   "home",
