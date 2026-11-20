@@ -411,7 +411,7 @@ async function playById(id) {
         return { streams: official, expiresAt: Math.floor(Date.now() / 1000) + 3600 };
       }
     } catch (e) { host.log('官方通道异常', (e && e.message) || e); }
-    if (attempt === 0) await new Promise(r => setTimeout(r, 400));
+    if (attempt === 0) await Promise.resolve(); // 沙箱无定时器，用微任务让出一次
   }
   // ② 并发探测第三方实例：谁先成功用谁 + 记忆
   try {

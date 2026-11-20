@@ -2,7 +2,7 @@
  "schema": 1,
  "id": "com.idj.youtube",
  "name": "油管",
- "version": "1.0.5",
+ "version": "1.0.6",
  "author": {
   "name": "i短剧",
   "contact": ""
@@ -88,7 +88,7 @@
  ],
  "integrity": {
   "files": {
-   "main.js": "sha256-XcDmmjS2xQoidJBCmSAC3jcTgP3VLxdIc0cIJ8vKmQc="
+   "main.js": "sha256-SAgfcCNmRp6payQqNu1JDzrLdtRq+1SJIaR8odbs3fo="
   }
  }
 }
