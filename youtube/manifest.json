@@ -2,12 +2,12 @@
  "schema": 1,
  "id": "com.idj.youtube",
  "name": "油管",
- "version": "1.0.4",
+ "version": "1.0.5",
  "author": {
   "name": "i短剧",
   "contact": ""
  },
- "description": "通用 YouTube 频道插件：填频道列出全部视频并播放。频道解析三级兜底(browse/HTML/搜索)，播放优先官方明文直链、失败回退 Invidious/Piped 实例。测试频道 @TWStoryTV。",
+ "description": "通用 YouTube 频道插件：填频道列出全部视频并播放。频道解析三级兜底，播放优先官方明文/HLS直链(WEB动态client+多client)并重试、失败回退 Invidious/Piped 实例。测试频道 @TWStoryTV。",
  "type": "video",
  "adult": false,
  "language": [
@@ -18,25 +18,31 @@
  "entry": "main.js",
  "permissions": {
   "http": [
-   "youtube.com",
-   "www.youtube.com",
-   "m.youtube.com",
-   "i.ytimg.com",
-   "yt.chocolatemoo53.com",
-   "invidious.tiekoetter.com",
-   "inv.nadeko.net",
-   "invidious.nerdvpn.de",
-   "yewtu.be",
-   "inv.tux.pizza",
-   "yt.artemislena.eu",
-   "invidious.privacydev.net",
-   "invidious.drgns.space",
-   "pipedapi.kavin.rocks",
+   "api.piped.private.coffee",
    "api.piped.yt",
-   "pipedapi.adminforge.de",
-   "pipedapi.tokhmi.xyz",
+   "i.ytimg.com",
+   "inv.nadeko.net",
+   "inv.tux.pizza",
+   "invidious.drgns.space",
+   "invidious.f5.si",
+   "invidious.nerdvpn.de",
+   "invidious.privacydev.net",
+   "invidious.tiekoetter.com",
+   "m.youtube.com",
+   "piped-api.codespace.cz",
    "piped-api.garudalinux.org",
-   "pipedapi.leptons.xyz"
+   "pipedapi.adminforge.de",
+   "pipedapi.drgns.space",
+   "pipedapi.ducks.party",
+   "pipedapi.kavin.rocks",
+   "pipedapi.leptons.xyz",
+   "pipedapi.syncpundit.io",
+   "pipedapi.tokhmi.xyz",
+   "www.youtube.com",
+   "yewtu.be",
+   "youtube.com",
+   "yt.artemislena.eu",
+   "yt.chocolatemoo53.com"
   ],
   "media": [
    "i.ytimg.com",
@@ -82,7 +88,7 @@
  ],
  "integrity": {
   "files": {
-   "main.js": "sha256-tcfo46+WP4XzsvI+7wjgzC1cCkbL5AecDq2CRVfhrig="
+   "main.js": "sha256-XcDmmjS2xQoidJBCmSAC3jcTgP3VLxdIc0cIJ8vKmQc="
   }
  }
 }

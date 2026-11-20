@@ -10,14 +10,19 @@ const INNERTUBE = 'https://www.youtube.com';
 const THUMB = 'https://i.ytimg.com';
 
 // 播放实例（settings.api = 'auto' 时按此顺序逐个尝试）
+// 2026-11 更新：只保留官方目录仍在列的存活实例（Invidious 明网 5 个 + Piped 官方目录若干）
 const FLAVORS = {
   invidious: [
-    'https://yt.chocolatemoo53.com', 'https://invidious.tiekoetter.com',
-    'https://inv.nadeko.net', 'https://invidious.nerdvpn.de'
+    'https://inv.nadeko.net', 'https://yt.chocolatemoo53.com',
+    'https://invidious.tiekoetter.com', 'https://invidious.f5.si',
+    'https://invidious.nerdvpn.de'
   ],
   piped: [
-    'https://pipedapi.kavin.rocks', 'https://api.piped.yt', 'https://pipedapi.adminforge.de',
-    'https://pipedapi.tokhmi.xyz', 'https://piped-api.garudalinux.org', 'https://pipedapi.leptons.xyz'
+    'https://pipedapi.kavin.rocks', 'https://api.piped.yt',
+    'https://pipedapi.ducks.party', 'https://api.piped.private.coffee',
+    'https://pipedapi.leptons.xyz', 'https://pipedapi.adminforge.de',
+    'https://pipedapi.drgns.space', 'https://pipedapi.syncpundit.io',
+    'https://piped-api.codespace.cz'
   ]
 };
 
@@ -275,9 +280,12 @@ function apiList() {
 
 // 官方 player：尝试多种 client，挑「带明文 url、无 cipher」的流（插件沙箱解不了 cipher）
 const PLAYER_CLIENTS = [
-  { name: 'ANDROID', ver: '19.44.38', ua: 'com.google.android.youtube/19.44.38', extra: { androidSdkVersion: 30 } },
-  { name: 'IOS', ver: '19.45.4', ua: 'com.google.ios.youtube/19.45.4', extra: { deviceMake: 'Apple', deviceModel: 'iPhone16,2', osName: 'iPhone', osVersion: '17.5.1.21F90' } },
-  { name: 'TVHTML5', ver: '7.20250316.18.00', ua: 'Mozilla/5.0 (ChromiumStylePlatform) Cobalt/Version', extra: {} }
+  // WEB / WEB_EMBEDDED 用 ensureClient 动态拿到的当前 key/version（与列表接口同源，最不易过期，且常带 HLS 明文）
+  { name: 'WEB', dynamic: true, ua: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36', extra: {} },
+  { name: 'WEB_EMBEDDED_PLAYER', dynamic: true, ua: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36', extra: { clientScreen: 'EMBED', thirdParty: { embedUrl: 'https://www.youtube.com/' } } },
+  { name: 'ANDROID', ver: '20.10.38', ua: 'com.google.android.youtube/20.10.38 (Linux; U; Android 14)', extra: { androidSdkVersion: 34 } },
+  { name: 'IOS', ver: '20.10.4', ua: 'com.google.ios.youtube/20.10.4 (iPhone16,2; U; CPU iOS 18_3 like Mac OS X;)', extra: { deviceMake: 'Apple', deviceModel: 'iPhone16,2', osName: 'iPhone', osVersion: '18.3.1.22D72' } },
+  { name: 'TVHTML5', ver: '7.20251015.18.00', ua: 'Mozilla/5.0 (ChromiumStylePlatform) Cobalt/Version', extra: {} }
 ];
 function plainUrl(f) {
   if (!f || !f.url) return null;
@@ -289,7 +297,9 @@ async function streamsFromOfficial(id) {
   const c = await ensureClient();
   for (const cli of PLAYER_CLIENTS) {
     try {
-      const client = Object.assign({ clientName: cli.name, clientVersion: cli.ver, hl: 'zh-CN', gl: 'US' }, cli.extra || {});
+      // 动态 client 用 ensureClient 的当前版本号，避免写死版本过期
+      const ver = cli.dynamic ? c.version : cli.ver;
+      const client = Object.assign({ clientName: cli.name, clientVersion: ver, hl: 'zh-CN', gl: 'US' }, cli.extra || {});
       const body = JSON.stringify({ context: { client }, videoId: id, contentCheckOk: true, racyCheckOk: true });
       const res = await host.http.post(INNERTUBE + '/youtubei/v1/player?key=' + c.key, body,
         { headers: { 'Content-Type': 'application/json', 'User-Agent': cli.ua }, timeout: 15000 });
@@ -297,6 +307,10 @@ async function streamsFromOfficial(id) {
       const r = JSON.parse(res.body || '{}');
       const ps = r.playabilityStatus || {};
       const sd = r.streamingData || {};
+      // 记录不可播原因，方便诊断（LOGIN_REQUIRED = 人机验证墙，BOT_CHECK 等）
+      if (!sd.formats && !sd.adaptiveFormats && !sd.hlsManifestUrl) {
+        host.log('官方 player 无可播流', cli.name, ps.status || '', String(ps.reason || '').slice(0, 80));
+      }
       const streams = [];
       const push = (f, label) => {
         const u = plainUrl(f);
@@ -389,13 +403,16 @@ async function streamsFromPiped(base, id) {
 }
 
 async function playById(id) {
-  // ① 官方 player 直链：不依赖任何第三方实例，最稳
-  try {
-    const official = await streamsFromOfficial(id);
-    if (official && official.length) {
-      return { streams: official, expiresAt: Math.floor(Date.now() / 1000) + 3600 };
-    }
-  } catch (e) { host.log('官方通道异常', (e && e.message) || e); }
+  // ① 官方 player 直链：不依赖任何第三方实例，最稳。网络抖动导致全体失败时重试一次
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const official = await streamsFromOfficial(id);
+      if (official && official.length) {
+        return { streams: official, expiresAt: Math.floor(Date.now() / 1000) + 3600 };
+      }
+    } catch (e) { host.log('官方通道异常', (e && e.message) || e); }
+    if (attempt === 0) await new Promise(r => setTimeout(r, 400));
+  }
   // ② 并发探测第三方实例：谁先成功用谁 + 记忆
   try {
     const streams = await streamsFromInstances(id);
