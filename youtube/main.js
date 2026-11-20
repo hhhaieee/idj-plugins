@@ -283,16 +283,17 @@ function apiList() {
 
 // 官方 player：尝试多种 client 身份，挑「带明文 url 或 HLS、无 cipher」的流（插件沙箱禁 JS，解不了 cipher / PO Token）。
 // 2026-11 重要：YouTube 全面对 WEB/ANDROID/IOS 强制 PO Token（LOGIN_REQUIRED 人机验证墙）。
-// 依据 yt-dlp 官方 PO Token Guide（2026-11）：WEB_SAFARI 提供 HLS 且当前 HLS 免 GVS Token；
-// TV / WEB_EMBEDDED 标 Not required（仅可嵌入/需正确 embedUrl）；ANDROID_VR 2026-08 起已被 403。
-// 故把 WEB_SAFARI(HLS) 放在最前，其次 MWEB / TV，最后才试会失败的常规身份。
+// 依据 yt-dlp 官方配置（2026-11）：web_safari 身份靠 Safari UA（clientName 仍是 WEB）拿预合并 HLS，
+// HLS 当前免 GVS Token；注意 2026.07 起 YouTube 只向 logged-in/"trusted" 会话返回 HLS，匿名未必拿到。
+// WEB_SAFARI 必须动态 clientVersion + Safari UA + gzip(gfe)，否则 400。TV/WEB_EMBEDDED 免 token 但受限。
+// 故把 WEB_SAFARI(HLS) 放最前，其次 WEB_EMBEDDED / MWEB / TV。非 200 响应也记日志便于诊断。
 const PLAYER_CLIENTS = [
   // ① WEB_SAFARI：走 HLS，当前免 PO Token，最有希望。clientVersion 用 Safari 对应的 16.x 系列。
-  { name: 'WEB_SAFARI', ver: '16.6.2025.11.19', ua: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Safari/605.1.15', extra: { clientName: 'WEB_SAFARI' } },
+  { name: 'WEB_SAFARI', cn: 'WEB', dyn: true, ver: '2.20260708.00.00', ua: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.5 Safari/605.1.15,gzip(gfe)', extra: {} },
   // ② WEB_EMBEDDED：Not required，但 embedUrl 必须是真实第三方域名（youtube.com 自己会被判"此视频不能观看"）
-  { name: 'WEB_EMBEDDED_PLAYER', ver: '2.20250312.04.00', ua: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36', extra: { clientScreen: 'EMBED', thirdParty: { embedUrl: 'https://www.google.com/' } } },
+  { name: 'WEB_EMBEDDED_PLAYER', cn: 'WEB_EMBEDDED_PLAYER', dyn: true, ver: '2.20260708.00.00', ua: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.5 Safari/605.1.15,gzip(gfe)', extra: { clientScreen: 'EMBED', thirdParty: { embedUrl: 'https://www.youtube.com/' } } },
   // ③ MWEB：移动网页身份
-  { name: 'MWEB', ver: '2.20250311.01.00', ua: 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1', extra: {} },
+  { name: 'MWEB', cn: 'MWEB', dyn: true, ver: '2.20260708.00.00', ua: 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1', extra: {} },
   // ④ TVHTML5：yt-dlp 标注 tv 免 PO Token（部分格式带 SABR/DRM，仍值得一试）
   { name: 'TVHTML5', ver: '7.20250312.18.00', ua: 'Mozilla/5.0 (ChromiumStylePlatform) Cobalt/Version', extra: {} }
 ];
@@ -306,11 +307,11 @@ async function streamsFromOfficial(id) {
   const c = await ensureClient();
   for (const cli of PLAYER_CLIENTS) {
     try {
-      const client = Object.assign({ clientName: cli.name, clientVersion: cli.ver, hl: 'zh-CN', gl: 'US' }, cli.extra || {});
+      const client = Object.assign({ clientName: cli.cn || cli.name, clientVersion: cli.dyn ? c.version : cli.ver, hl: 'zh-CN', gl: 'US' }, cli.extra || {});
       const body = JSON.stringify({ context: { client }, videoId: id, contentCheckOk: true, racyCheckOk: true, playbackContext: { contentPlaybackContext: { html5Preference: 'HTML5_PREF_WANTS' } } });
       const res = await host.http.post(INNERTUBE + '/youtubei/v1/player?key=' + c.key, body,
         { headers: { 'Content-Type': 'application/json', 'User-Agent': cli.ua }, timeout: 15000 });
-      if (res.status < 200 || res.status >= 300) continue;
+      if (res.status < 200 || res.status >= 300) { host.log('官方 player HTTP 错误', cli.name, 'HTTP ' + res.status, String(res.body || '').slice(0, 120)); continue; }
       const r = JSON.parse(res.body || '{}');
       const ps = r.playabilityStatus || {};
       const sd = r.streamingData || {};

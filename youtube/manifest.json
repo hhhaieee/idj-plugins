@@ -2,12 +2,12 @@
  "schema": 1,
  "id": "com.idj.youtube",
  "name": "油管",
- "version": "1.0.7",
+ "version": "1.0.8",
  "author": {
   "name": "i短剧",
   "contact": ""
  },
- "description": "通用 YouTube 频道插件：填频道列出全部视频并播放。频道解析三级兜底；播放针对 2026 YouTube PO Token 人机墙改用免 Token 身份（WEB_SAFARI 的 HLS / MWEB / WEB_EMBEDDED 正确 embedUrl / TV），失败回退 Invidious/Piped 实例。测试频道 @TWStoryTV。",
+ "description": "通用 YouTube 频道插件：填频道列出全部视频并播放。频道解析三级兜底；播放按 yt-dlp 当前配置走 WEB_SAFARI(Safari UA 动态版本取 HLS)/WEB_EMBEDDED/MWEB/TV 免 Token 身份，失败回退 Invidious/Piped 实例。测试频道 @TWStoryTV。",
  "type": "video",
  "adult": false,
  "language": [
@@ -86,7 +86,7 @@
  ],
  "integrity": {
   "files": {
-   "main.js": "sha256-AHgPrY1nT2kRdNkjbVDs/tKVi7M3pFrE4TnvJkE7CwQ="
+   "main.js": "sha256-/y/MBP28NlWRAYtF8PS5fOdvPDB3NDsPyLOHcehyLh0="
   }
  }
 }
