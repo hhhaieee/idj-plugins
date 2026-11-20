@@ -2,12 +2,12 @@
  "schema": 1,
  "id": "com.idj.youtube",
  "name": "油管",
- "version": "1.0.6",
+ "version": "1.0.7",
  "author": {
   "name": "i短剧",
   "contact": ""
  },
- "description": "通用 YouTube 频道插件：填频道列出全部视频并播放。频道解析三级兜底，播放优先官方明文/HLS直链(WEB动态client+多client)并重试、失败回退 Invidious/Piped 实例。测试频道 @TWStoryTV。",
+ "description": "通用 YouTube 频道插件：填频道列出全部视频并播放。频道解析三级兜底；播放针对 2026 YouTube PO Token 人机墙改用免 Token 身份（WEB_SAFARI 的 HLS / MWEB / WEB_EMBEDDED 正确 embedUrl / TV），失败回退 Invidious/Piped 实例。测试频道 @TWStoryTV。",
  "type": "video",
  "adult": false,
  "language": [
@@ -22,26 +22,24 @@
    "api.piped.yt",
    "i.ytimg.com",
    "inv.nadeko.net",
-   "inv.tux.pizza",
-   "invidious.drgns.space",
-   "invidious.f5.si",
    "invidious.nerdvpn.de",
-   "invidious.privacydev.net",
    "invidious.tiekoetter.com",
    "m.youtube.com",
    "piped-api.codespace.cz",
-   "piped-api.garudalinux.org",
+   "piped-api.privacy.com.de",
    "pipedapi.adminforge.de",
+   "pipedapi.darkness.services",
    "pipedapi.drgns.space",
    "pipedapi.ducks.party",
    "pipedapi.kavin.rocks",
    "pipedapi.leptons.xyz",
+   "pipedapi.nosebs.ru",
+   "pipedapi.owo.si",
+   "pipedapi.orangenet.cc",
+   "pipedapi.reallyaweso.me",
    "pipedapi.syncpundit.io",
-   "pipedapi.tokhmi.xyz",
    "www.youtube.com",
-   "yewtu.be",
    "youtube.com",
-   "yt.artemislena.eu",
    "yt.chocolatemoo53.com"
   ],
   "media": [
@@ -88,7 +86,7 @@
  ],
  "integrity": {
   "files": {
-   "main.js": "sha256-SAgfcCNmRp6payQqNu1JDzrLdtRq+1SJIaR8odbs3fo="
+   "main.js": "sha256-AHgPrY1nT2kRdNkjbVDs/tKVi7M3pFrE4TnvJkE7CwQ="
   }
  }
 }

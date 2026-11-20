@@ -13,16 +13,19 @@ const THUMB = 'https://i.ytimg.com';
 // 2026-11 更新：只保留官方目录仍在列的存活实例（Invidious 明网 5 个 + Piped 官方目录若干）
 const FLAVORS = {
   invidious: [
-    'https://inv.nadeko.net', 'https://yt.chocolatemoo53.com',
-    'https://invidious.tiekoetter.com', 'https://invidious.f5.si',
+    'https://yt.chocolatemoo53.com',  // 官方列表唯一 api:true
+    'https://inv.nadeko.net', 'https://invidious.tiekoetter.com',
     'https://invidious.nerdvpn.de'
   ],
   piped: [
     'https://pipedapi.kavin.rocks', 'https://api.piped.yt',
-    'https://pipedapi.ducks.party', 'https://api.piped.private.coffee',
-    'https://pipedapi.leptons.xyz', 'https://pipedapi.adminforge.de',
-    'https://pipedapi.drgns.space', 'https://pipedapi.syncpundit.io',
-    'https://piped-api.codespace.cz'
+    'https://pipedapi.nosebs.ru', 'https://pipedapi.owo.si',
+    'https://piped-api.privacy.com.de', 'https://pipedapi.adminforge.de',
+    'https://pipedapi.darkness.services', 'https://pipedapi.orangenet.cc',
+    'https://pipedapi.reallyaweso.me', 'https://pipedapi.ducks.party',
+    'https://api.piped.private.coffee', 'https://pipedapi.leptons.xyz',
+    'https://pipedapi.drgns.space', 'https://piped-api.codespace.cz',
+    'https://pipedapi.syncpundit.io'
   ]
 };
 
@@ -278,14 +281,20 @@ function apiList() {
   return list;
 }
 
-// 官方 player：尝试多种 client，挑「带明文 url、无 cipher」的流（插件沙箱解不了 cipher）
+// 官方 player：尝试多种 client 身份，挑「带明文 url 或 HLS、无 cipher」的流（插件沙箱禁 JS，解不了 cipher / PO Token）。
+// 2026-11 重要：YouTube 全面对 WEB/ANDROID/IOS 强制 PO Token（LOGIN_REQUIRED 人机验证墙）。
+// 依据 yt-dlp 官方 PO Token Guide（2026-11）：WEB_SAFARI 提供 HLS 且当前 HLS 免 GVS Token；
+// TV / WEB_EMBEDDED 标 Not required（仅可嵌入/需正确 embedUrl）；ANDROID_VR 2026-08 起已被 403。
+// 故把 WEB_SAFARI(HLS) 放在最前，其次 MWEB / TV，最后才试会失败的常规身份。
 const PLAYER_CLIENTS = [
-  // WEB / WEB_EMBEDDED 用 ensureClient 动态拿到的当前 key/version（与列表接口同源，最不易过期，且常带 HLS 明文）
-  { name: 'WEB', dynamic: true, ua: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36', extra: {} },
-  { name: 'WEB_EMBEDDED_PLAYER', dynamic: true, ua: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36', extra: { clientScreen: 'EMBED', thirdParty: { embedUrl: 'https://www.youtube.com/' } } },
-  { name: 'ANDROID', ver: '20.10.38', ua: 'com.google.android.youtube/20.10.38 (Linux; U; Android 14)', extra: { androidSdkVersion: 34 } },
-  { name: 'IOS', ver: '20.10.4', ua: 'com.google.ios.youtube/20.10.4 (iPhone16,2; U; CPU iOS 18_3 like Mac OS X;)', extra: { deviceMake: 'Apple', deviceModel: 'iPhone16,2', osName: 'iPhone', osVersion: '18.3.1.22D72' } },
-  { name: 'TVHTML5', ver: '7.20251015.18.00', ua: 'Mozilla/5.0 (ChromiumStylePlatform) Cobalt/Version', extra: {} }
+  // ① WEB_SAFARI：走 HLS，当前免 PO Token，最有希望。clientVersion 用 Safari 对应的 16.x 系列。
+  { name: 'WEB_SAFARI', ver: '16.6.2025.11.19', ua: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Safari/605.1.15', extra: { clientName: 'WEB_SAFARI' } },
+  // ② WEB_EMBEDDED：Not required，但 embedUrl 必须是真实第三方域名（youtube.com 自己会被判"此视频不能观看"）
+  { name: 'WEB_EMBEDDED_PLAYER', ver: '2.20250312.04.00', ua: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36', extra: { clientScreen: 'EMBED', thirdParty: { embedUrl: 'https://www.google.com/' } } },
+  // ③ MWEB：移动网页身份
+  { name: 'MWEB', ver: '2.20250311.01.00', ua: 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1', extra: {} },
+  // ④ TVHTML5：yt-dlp 标注 tv 免 PO Token（部分格式带 SABR/DRM，仍值得一试）
+  { name: 'TVHTML5', ver: '7.20250312.18.00', ua: 'Mozilla/5.0 (ChromiumStylePlatform) Cobalt/Version', extra: {} }
 ];
 function plainUrl(f) {
   if (!f || !f.url) return null;
@@ -297,20 +306,14 @@ async function streamsFromOfficial(id) {
   const c = await ensureClient();
   for (const cli of PLAYER_CLIENTS) {
     try {
-      // 动态 client 用 ensureClient 的当前版本号，避免写死版本过期
-      const ver = cli.dynamic ? c.version : cli.ver;
-      const client = Object.assign({ clientName: cli.name, clientVersion: ver, hl: 'zh-CN', gl: 'US' }, cli.extra || {});
-      const body = JSON.stringify({ context: { client }, videoId: id, contentCheckOk: true, racyCheckOk: true });
+      const client = Object.assign({ clientName: cli.name, clientVersion: cli.ver, hl: 'zh-CN', gl: 'US' }, cli.extra || {});
+      const body = JSON.stringify({ context: { client }, videoId: id, contentCheckOk: true, racyCheckOk: true, playbackContext: { contentPlaybackContext: { html5Preference: 'HTML5_PREF_WANTS' } } });
       const res = await host.http.post(INNERTUBE + '/youtubei/v1/player?key=' + c.key, body,
         { headers: { 'Content-Type': 'application/json', 'User-Agent': cli.ua }, timeout: 15000 });
       if (res.status < 200 || res.status >= 300) continue;
       const r = JSON.parse(res.body || '{}');
       const ps = r.playabilityStatus || {};
       const sd = r.streamingData || {};
-      // 记录不可播原因，方便诊断（LOGIN_REQUIRED = 人机验证墙，BOT_CHECK 等）
-      if (!sd.formats && !sd.adaptiveFormats && !sd.hlsManifestUrl) {
-        host.log('官方 player 无可播流', cli.name, ps.status || '', String(ps.reason || '').slice(0, 80));
-      }
       const streams = [];
       const push = (f, label) => {
         const u = plainUrl(f);
@@ -322,8 +325,9 @@ async function streamsFromOfficial(id) {
       };
       (sd.formats || []).forEach(f => push(f, '官方'));
       (sd.adaptiveFormats || []).forEach(f => { if (f.mimeType && /audio\//.test(f.mimeType)) push(f, '音频'); });
+      // HLS 清单当前免 GVS PO Token —— WEB_SAFARI 路线的主要产物
       if (sd.hlsManifestUrl) streams.push({ name: '官方HLS', url: sd.hlsManifestUrl, format: 'hls' });
-      if (!streams.length) { host.log('官方 player 无直用流', cli.name, ps.status || '', ps.reason || ''); continue; }
+      if (!streams.length) { host.log('官方 player 无直用流', cli.name, ps.status || '', String(ps.reason || '').slice(0, 80)); continue; }
       host.log('官方 player 直链成功', cli.name, streams.length + ' 条');
       return streams;
     } catch (e) { host.log('官方 player 失败', cli.name, (e && e.message) || e); }
